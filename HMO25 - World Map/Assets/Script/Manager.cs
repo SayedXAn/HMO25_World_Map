@@ -22,6 +22,8 @@ public class Manager : MonoBehaviour
     public int gameID = 5;
     public int score = 0;
     public TMP_Text statusText;
+    public int[] buttonIds = {0, 0, 0, 0, 0, 0};
+    
     void Start()
     {
         GetVideosFromLocal();
@@ -106,13 +108,25 @@ public class Manager : MonoBehaviour
 
     public void ResetPanel()
     {
+        score = score * 5;
         SendScore();
+        score = 0;
+        buttonIds = new int[] { 0, 0, 0, 0, 0, 0 };
         rfid = "";
         rfidPanel.SetActive(true);
         rt.Release();
         content.Stop();
         rfid_IF.text = "";
         rfid_IF.ActivateInputField();
+    }
+
+    public void CalculateScore(int id)
+    {
+        if (buttonIds[id] == 0)
+        {
+            buttonIds[id] = 1;
+            score++;
+        }
     }
 
     public void SendScore()
@@ -164,6 +178,6 @@ public class Manager : MonoBehaviour
 
         // Optional: fade out after 3 seconds
         yield return new WaitForSeconds(3);
-        statusText.text = "";
+        statusText.text = "";        
     }
 }
