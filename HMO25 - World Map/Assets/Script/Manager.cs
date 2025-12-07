@@ -23,6 +23,7 @@ public class Manager : MonoBehaviour
     public int score = 0;
     public TMP_Text statusText;
     public int[] buttonIds = {0, 0, 0, 0, 0, 0};
+    public Button[] buttons;
     
     void Start()
     {
@@ -30,10 +31,12 @@ public class Manager : MonoBehaviour
         DOTween.Init();
         rfidPanel.SetActive(true);
         rfid_IF.ActivateInputField();
+        SetButtonOnOff(false);
     }
 
     public void LocationButton(int buttonID)
     { 
+        
         content.url = videoURLs[buttonID];
         rt.Release();
         content.gameObject.SetActive(true);        
@@ -92,6 +95,7 @@ public class Manager : MonoBehaviour
             rfid = rfid_IF.text;
             rfidPanel.SetActive(false);
             statusText.text = "";
+            SetButtonOnOff(true);
         }
         else
         {
@@ -118,6 +122,9 @@ public class Manager : MonoBehaviour
         content.Stop();
         rfid_IF.text = "";
         rfid_IF.ActivateInputField();
+        SetButtonOnOff(false);
+
+
     }
 
     public void CalculateScore(int id)
@@ -179,5 +186,13 @@ public class Manager : MonoBehaviour
         // Optional: fade out after 3 seconds
         yield return new WaitForSeconds(3);
         statusText.text = "";        
+    }
+
+    public void SetButtonOnOff(bool beOn)
+    {
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            buttons[i].interactable = beOn;
+        }
     }
 }
