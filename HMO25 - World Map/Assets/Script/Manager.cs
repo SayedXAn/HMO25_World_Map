@@ -17,11 +17,11 @@ public class Manager : MonoBehaviour
     public GameObject rfidPanel;
     public TMP_InputField rfid_IF;
     private string rfid;
-    private const string url = "https://rfid-scan.mern.singularitybd.net/users/set-point";
-    private const string token = "9b1de5f407f1463e7b2a921bbce364";
+    private const string url = "https://rfid-scan.wskoly.xyz/api/game/score";
     public int gameID = 5;
     public int score = 0;
     public TMP_Text statusText;
+    public TMP_Text scoreText;
     public int[] buttonIds = {0, 0, 0, 0, 0, 0};
     public Button[] buttons;
     
@@ -123,8 +123,6 @@ public class Manager : MonoBehaviour
         rfid_IF.text = "";
         rfid_IF.ActivateInputField();
         SetButtonOnOff(false);
-
-
     }
 
     public void CalculateScore(int id)
@@ -138,23 +136,15 @@ public class Manager : MonoBehaviour
 
     public void SendScore()
     {
-        StartCoroutine(PostScore(rfid, gameID, int.Parse(score.ToString())));
+        StartCoroutine(PostScore(rfid_IF.text, gameID, score));
     }
 
     IEnumerator PostScore(string rfid, int gID, int score)
     {
+        var gameID = gID + 1;
         // Build JSON manually
-        string jsonBody = "{";
-        jsonBody += "\"RFID\":\"" + rfid + "\",";
 
-        if (gID == 0) jsonBody += "\"game1\":" + score;
-        if (gID == 1) jsonBody += "\"game2\":" + score;
-        if (gID == 2) jsonBody += "\"game3\":" + score;
-        if (gID == 3) jsonBody += "\"game4\":" + score;
-        if (gID == 4) jsonBody += "\"game5\":" + score;
-        if (gID == 5) jsonBody += "\"game6\":" + score;
-
-        jsonBody += "}";
+        string jsonBody = $"{{\"rfid\": \"{rfid}\", \"scores\": {{\"{gameID}\": {score}}}}}";
 
         Debug.Log("Sending: " + jsonBody);
         statusText.text = "Posting score...";
@@ -165,7 +155,7 @@ public class Manager : MonoBehaviour
         request.downloadHandler = new DownloadHandlerBuffer();
 
         request.SetRequestHeader("Content-Type", "application/json");
-        request.SetRequestHeader("x-token", token);
+        //request.SetRequestHeader("x-token", token);
 
         yield return request.SendWebRequest();
 
@@ -174,6 +164,10 @@ public class Manager : MonoBehaviour
             Debug.Log("POST Success: " + request.downloadHandler.text);
             statusText.text = "Score updated successfully!";
             statusText.color = Color.green;
+            // Parse JSON response
+            UpdateScoreResponse response = JsonUtility.FromJson<UpdateScoreResponse>(request.downloadHandler.text);
+            scoreText.text = $"Your total score: {response.total_points}";
+            StartCoroutine(ResetScoreText());
         }
         else
         {
@@ -185,7 +179,7 @@ public class Manager : MonoBehaviour
 
         // Optional: fade out after 3 seconds
         yield return new WaitForSeconds(3);
-        statusText.text = "";        
+        statusText.text = "";
     }
 
     public void SetButtonOnOff(bool beOn)
@@ -195,4 +189,30 @@ public class Manager : MonoBehaviour
             buttons[i].interactable = beOn;
         }
     }
+
+    IEnumerator ResetScoreText()
+    {
+        yield return new WaitForSeconds(5f);
+        scoreText.text = "";
+    }
+}
+
+[System.Serializable]
+public class ScoreResponse
+{
+    public string rfid;
+    public int game_id;
+    public int score;
+    public string user_name;
+    public int total_points;
+}
+
+[System.Serializable]
+public class UpdateScoreResponse
+{
+    public string rfid;
+    public string user_name;
+    public string updated_games;
+    public int total_points;
+    public string message;
 }
